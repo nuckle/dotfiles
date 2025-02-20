@@ -1,0 +1,19 @@
+@theme "~/.local/share/rofi/themes/dracula.rasi"
+
+configuration {
+	monitor: "-4";
+	matching: "fuzzy";
+	drun-display-format: "{name}";
+	drun-match-fields: "{name}";
+	kb-page-prev: "Page_Up,Alt+k";
+	kb-page-next: "Page_Down,Alt+j";
+	kb-row-down: "Down,Control+j,Shift+ISO_Left_Tab,Control+l,Alt+l";
+	kb-row-up: "Up,Control+k,Control+h,Alt+h";
+	kb-accept-entry: "Control+m,Return,KP_Enter,Control+KP_Enter,Alt+m";
+	kb-remove-to-eol: "Control+Shift+e";
+	kb-remove-char-back: "BackSpace";
+	kb-mode-complete: "";
+	kb-cancel: "Control+q,Alt+q,Escape";
+	kb-primary-paste: "Alt+v";
+	kb-secondary-paste: "Control+v";
+}

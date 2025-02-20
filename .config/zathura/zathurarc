@@ -1,0 +1,4 @@
+set selection-clipboard clipboard
+set database sqlite
+map <C-o> feedkeys ":exec gnome-terminal -e lf-wrapper "$FILE" <Return>"
+

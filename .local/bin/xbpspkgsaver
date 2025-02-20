@@ -1,0 +1,51 @@
+#!/bin/sh
+
+installed_pkgs=$(xpkg -m)
+pkg_path="$HOME/pkgs"
+
+file_start="pkgs"
+file_name="$file_start-$(date +"%Y-%m-%dT%H%M")"
+
+mkdir -p "$pkg_path"
+
+# Get the current time in seconds since the epoch
+current_time=$(date +%s)
+
+# Initialize a variable to track the newest backup time
+newest_backup_time=0
+
+# Loop through existing backup files and check their timestamps
+for file in "$pkg_path"/pkgs-*; do
+	if [ -f "$file" ]; then
+		# Extract the timestamp from the filename (format: pkgs-YYYY-MM-DD-HH-MM)
+		filename=$(basename "$file")
+		datetime=$(echo "$filename" | sed "s/$file_start-//")
+
+		# Convert the datetime to a timestamp
+		timestamp=$(echo "$datetime" | awk -F'T' '{print $1 " " substr($2,1,2) ":" substr($2,3,2)}' | xargs -I{} date -d "{}" +"%s")
+
+		# Check if the timestamp conversion was successful
+		if [ -z "$timestamp" ]; then
+			echo "Invalid date found in filename: $filename"
+			continue
+		fi
+
+		# Check if this file is the most recent one
+		if [ "$timestamp" -gt "$newest_backup_time" ]; then
+			newest_backup_time="$timestamp"
+		fi
+
+		# Delete files older than 14 days (1209600 seconds)
+		if [ "$((current_time - timestamp))" -gt 1209600 ]; then
+			rm "$file"
+			echo "A file $file was deleted"
+		fi
+	fi
+done
+
+# Only create a new backup if no recent backup exists (within the last 5 hours)
+if [ "$((current_time - newest_backup_time))" -gt 18000 ]; then
+	echo "$installed_pkgs" > "$pkg_path/$file_name"
+else
+	echo "A backup was created within the last 5 hours. Skipping backup."
+fi

@@ -1,0 +1,26 @@
+{
+	"php": {
+		"prefix": ["php"],
+		"body": ["<?php \n$0\n?>"],
+		"description": "Default php tag"
+	},
+
+	"favicon": {
+		"prefix": ["favicon"],
+		"body": ["<link rel='icon' href='images/${1:favicon.png}'>"],
+		"description": "Icon for website"
+	},
+
+	"svg": {
+		"prefix": ["svg"],
+		"body": ["<svg>$1</svg>"],
+		"description": "svg image"
+	},
+
+	"use": {
+		"prefix": ["use"],
+		"body": ["<svg class='$1'>\n\t<use xlink:href='images/svg/sprite.svg#$2'></use>\n</svg>"],
+		"description": "svg sprite"
+	}
+}
+

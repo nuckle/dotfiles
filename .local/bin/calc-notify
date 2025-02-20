@@ -1,0 +1,4 @@
+#!/bin/sh
+
+notify-send "This Month" "$(cal --monday | sed "s/\<$(date +'%e'|sed 's/ //g')\>/<b><span color='red'>&<\/span><\/b>/")" && notify-send "Events" "$(khal list today 30d)"
+

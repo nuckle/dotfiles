@@ -1,0 +1,9 @@
+#!/bin/sh
+
+selected_emoji=$(rofi -matching normal -modi emoji -show emoji -kb-secondary-copy "" -kb-custom-1 Ctrl+c -emoji-mode stdout)
+
+if [ -n "$selected_emoji" ]; then
+	# remove new line character and copy to the clipboard
+    echo "$selected_emoji" | tr -d '\n' | xclip -selection clipboard
+    notify-send "'$selected_emoji' copied to clipboard"
+fi

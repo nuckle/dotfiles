@@ -1,0 +1,455 @@
+#!/bin/bash
+
+set icons
+set preview true
+set mouse true
+
+set previewer ~/.config/lf/view
+set cleaner ~/.config/lf/clear_img.sh
+
+set hidden
+set ifs "\n"
+set drawbox
+
+set autoquit true
+
+set sixel
+
+cmd mkdir $mkdir -p "$(echo $* | tr ' ' '\ ')"
+
+cmd touch $touch "$(echo $* | tr ' ' '\ ')"
+
+cmd unzip ${{
+for fx in $fx; do
+	atool -x "$fx"
+done
+}}
+
+cmd unzip ${{
+for fx in $fx; do
+	atool -x "$fx"
+done
+}}
+
+cmd unzip-split ${{
+	7zr x "$fx"
+}}
+
+cmd fzf_select ${{
+res="$(find -L . \( -path '*/\.*' -o -fstype 'dev' -o -fstype 'proc' \) -prune -o -print 2> /dev/null | sed 1d | cut -b3- | fzf +m)"
+if [ -d "$res" ] ; then
+	cmd="cd"
+elif [ -f "$res" ] ; then
+	cmd="select"
+else
+	exit 0
+fi
+lf -remote "send $id $cmd \"$res\""
+}}
+
+cmd upload-file ${{
+notify-send '⬆️ Uploading files...'
+urls=''
+files_num=0
+for fx in $fx; do
+	files_num=$(( $files_num+1 ))
+	response=$(curl --write-out '%{http_code}\n' --upload-file "$fx" https://free.keep.sh)
+	url=$(echo $response | awk '{print $1}')
+	status=$(echo $response | awk '{print $2}')
+
+	if [ $status != 200 ]; then
+		notify-send '🛑 Failed to upload!'
+		exit
+	fi
+	urls="$urls \n$url"
+done
+echo $urls | xclip -selection clipboard
+notify-send "⬆️ All files($files_num) are uploaded!"
+}}
+
+cmd zip %{{
+    # Create a base archive name if not provided
+    [ -n "$1" ] || archive_name="archive_$(date '+%Y-%m-%d').zip"
+    
+    # Loop through all selected files and add them to the archive
+    for file in $fx; do
+        filename=$(basename -- "$file")
+        atool "$archive_name" -a "$filename" --format zip
+    done
+
+    # Check if the command was successful
+    if [ $? -eq 0 ]; then
+        printf "Zip created!"
+        notify-send --icon=/usr/share/icons/Papirus/32x32/apps/lxqt-archiver.svg "Zip $archive_name created"
+    else
+        printf "Zip failed"
+        notify-send --icon=/usr/share/icons/Papirus/32x32/apps/lxqt-archiver.svg "Zip $archive_name failed"
+    fi
+}}
+
+
+cmd zip-split %{{
+printf "The size of each archive in MB (default is 10 MB): "
+read size 
+[ -n "$size" ] || size="10"
+[ -n "$1" ] || archive_name=archive_`date '+%Y-%m-%d'`
+
+zip -j -s ${size}m "$archive_name" $fx
+
+if [ $? -eq 0 ]; then
+	printf "Zip created!"
+	notify-send --icon=/usr/share/icons/Papirus/32x32/apps/lxqt-archiver.svg "Zip $archive_name.zip created"
+else
+	printf "Zip failed"
+	notify-send --icon=/usr/share/icons/Papirus/32x32/apps/lxqt-archiver.svg "Zip $archive_name.zip failed"
+fi
+}}
+
+
+
+cmd upload-imgur ${{
+notify-send '🖼️Uploading files...'
+files=""
+filles_num=0
+
+for fx in $fx; do
+	case "$(printf "%s\n" "$(readlink -f "$fx")" | awk '{print tolower($0)}')" in 
+		*.jpg|*.jpeg|*.png|*.webm|*.tiff|*.gif|*.apng|*.mp4)
+			files_num=$(( $files_num+1 ))
+			files="$files $fx"
+			;;
+		*)
+			notify-send "File $fx is not supported!"
+			;;
+	esac
+done
+
+files=$(echo "$files" | xargs)
+
+eval 'imgurbash2 '"$files"
+
+notify-send "⬆️ All files($files_num) are uploaded!"
+}}
+
+cmd delete ${{
+clear; tput cup $(($(tput lines)/3)); tput bold
+set -f
+printf "%s\n\t" "$fx"
+printf "delete?[y/N]"
+read ans
+[ $ans = "y" ] && rm -rf -- $fx
+}}
+
+cmd unmount ${{
+umount -l -ld $fx && rm -rf -- $fx && notify-send --icon=/usr/share/icons/Papirus/32x32/apps/furiusisomount.svg "Unmounted: 
+$fx"
+}}
+
+cmd mount-archives ${{
+for fx in $fx; do
+	filename=$(basename -a "$fx")
+	mntdir="${XDG_CONFIG_HOME:-$HOME/.config}/lf/mounts/$filename.mnt"
+	mkdir -p "$mntdir"
+
+	if archivemount "$fx" "$mntdir"; then
+		notify-send --icon=/usr/share/icons/Papirus/32x32/apps/lxqt-archiver.svg "Archive Mount" "Successfully mounted $filename to $mntdir"
+	else
+		notify-send --icon=/usr/share/icons/Papirus/32x32/apps/lxqt-archiver.svg "Archive Mount Error" "Failed to mount $filename"
+	fi
+done
+}}
+
+cmd mount-archives-encrypted %{{
+for fx in $fx; do
+	filename=$(basename -a "$fx")
+	mntdir="${XDG_CONFIG_HOME:-$HOME/.config}/lf/mounts/$filename.mnt"
+	mkdir -p "$mntdir"
+
+	if archivemount -o password "$fx" "$mntdir"; then
+		printf "Successfully mounted!"
+		notify-send --icon=/usr/share/icons/Papirus/32x32/apps/lxqt-archiver.svg "Archive Mount" "Successfully mounted $filename to $mntdir"
+	else
+		printf "Failed to mount"
+		notify-send --icon=/usr/share/icons/Papirus/32x32/apps/lxqt-archiver.svg "Archive Mount Error" "Failed to mount $filename"
+	fi
+done
+}}
+
+cmd ssh-send %{{
+SSH_CONFIG_FILE=~/.ssh/config
+
+hosts=$(awk '/^Host / {print $2}' "$SSH_CONFIG_FILE")
+selected_host=$(echo "$hosts\nEnter Custom" | bemenu --binding vim --vim-normal-mode -p "Select SSH Host:")
+
+if [ -z "$selected_host" ]; then
+	exit 1
+fi
+
+if [ "$selected_host" = "Enter Custom" ]; then
+	# custom_host=$(echo "" | bemenu  -l 0 -p "Enter custom user@server:")
+	printf "Enter custom user@server: "
+	read custom_host
+
+	[ -n "$custom_host" ] || exit 1  
+	user_host=$(echo "$custom_host" | awk -F@ '{print $1 "@" $2}')
+
+		# custom_port=$(echo "" | bemenu -l 0 -p "Enter custom port (default 22):")
+		printf "Enter custom port (default 22): "
+		read custom_port
+
+		[ -n "$custom_port" ] || custom_port=22
+	else
+		host_config=$(awk -v host="$selected_host" '/^Host / {in_section=($2 == host)} in_section' "$SSH_CONFIG_FILE")
+
+		user=$(echo "$host_config" | awk '/^User / {print $2}')
+		hostname=$(echo "$host_config" | awk '/^Hostname / {print $2}')
+
+		user_host="$user@$hostname"
+
+		custom_port=$(echo "$host_config" | awk '/^Port / {print $2}')
+		[ -n "$custom_port" ] || custom_port=22
+fi
+
+if [ -n "$user_host" ]; then
+	password=$(echo "" | bemenu -l 0 --password hide -p "Enter password:")
+
+	rsync -a --progress -e "sshpass -p '$password' ssh -p $custom_port" $fx "$user_host:~/"
+
+	if [ $? -eq 0 ]; then
+		printf "Send successful!"
+		notify-send --icon=/usr/share/icons/Papirus/32x32/apps/org.onionshare.OnionShare.svg "Send successful: $fx to $user_host"
+	else
+		printf "Send failed"
+		notify-send --icon=/usr/share/icons/Papirus/32x32/apps/org.onionshare.OnionShare.svg "Send failed"
+	fi
+
+fi
+}}
+
+cmd mount-smb %{{
+printf "Enter SMB Host (ip(or PC name)/folder): "
+read selected_host
+
+if [ -z "$selected_host" ]; then
+	exit 1
+fi
+
+mount_path="${XDG_CONFIG_HOME:-$HOME/.config}/lf/mounts"
+mkdir -p $mount_path
+ln -s /run/user/1000/gvfs/ $mount_path/smb 2>/dev/null
+
+gio mount "smb://$selected_host"
+
+if [ $? -eq 0 ]; then
+	printf "Successfully mounted!"
+	notify-send --icon=/usr/share/icons/Papirus/32x32/apps/furiusisomount.svg "SMB Mount" "Successfully mounted $selected_host to "$mount_path/smb/""
+else
+	printf "Failed to mount"
+	notify-send --icon=/usr/share/icons/Papirus/32x32/apps/furiusisomount.svg "SMB Mount" "Failed to mount $selected_host"
+fi
+}}
+
+cmd unmount-smb ${{
+SMB_DIR=/run/user/1000/gvfs
+
+if [ -z "$(ls -A $SMB_DIR)" ]; then
+	exit 1
+else
+	gio mount -u $SMB_DIR/*
+	if [ $? -eq 0 ]; then
+		notify-send --icon=/usr/share/icons/Papirus/32x32/apps/furiusisomount.svg "Successfully unmounted SMB"
+	fi
+fi
+}}
+
+cmd mount-ftp %{{
+printf "Enter FTP Host (ip/folder): "
+read selected_host
+
+if [ -z "$selected_host" ]; then
+	exit 1
+fi
+
+if [ -z "${selected_host##*/*}" ]; then
+	remote_ip="${selected_host%%/*}"
+	remote_folder="${selected_host#*/}"
+else
+	remote_ip="$selected_host"
+	remote_folder=""
+fi
+
+	# custom_port=$(echo "" | bemenu -l 0 -p "Enter custom port (default 21):")
+	printf "Enter custom port (default 21): "
+	read custom_port
+
+	# username=$(echo "" | bemenu -l 0 -p "Enter user (if any):")
+	printf "Enter user (if any): "
+	read username
+
+	password=$(echo "" | bemenu -l 0 --password hide -p "Enter password (if any):")
+
+	[ -n "$custom_port" ] || custom_port=21
+
+	ftp_url="ftp://"
+	[ -n "$username" ] && ftp_url="$ftp_url$username:$password@"
+	ftp_url="$ftp_url$remote_ip:$custom_port/$remote_folder"
+
+	mount_path="${XDG_CONFIG_HOME:-$HOME/.config}/lf/mounts"
+
+	if [ -n "$username" ]; then
+		mount_folder_name="${username}@"
+	else
+		mount_folder_name=""
+	fi
+	clear_ip=$(echo "$remote_ip" | tr '/' '_')
+
+	mount_folder_name="ftp_${mount_folder_name}${clear_ip}${custom_port}_${remote_folder}"
+
+	mkdir -p "$mount_path/$mount_folder_name"
+	curlftpfs "$ftp_url" "$mount_path/$mount_folder_name"
+
+	if [ $? -eq 0 ]; then
+		printf "Successfully mounted!"
+		notify-send --icon=/usr/share/icons/Papirus/32x32/apps/furiusisomount.svg "FTP Mount" "Successfully mounted $ftp_url to "$mount_path/$mount_folder_name""
+	else
+		printf "Failed to mount"
+		notify-send --icon=/usr/share/icons/Papirus/32x32/apps/furiusisomount.svg "FTP Mount" "Failed to mount $ftp_url"
+	fi
+
+}}
+
+cmd mount-ssh %{{
+SSH_CONFIG_FILE=~/.ssh/config
+
+hosts=$(awk '/^Host / {print $2}' "$SSH_CONFIG_FILE")
+
+selected_host=$(echo "$hosts\nEnter Custom" | bemenu --binding vim --vim-normal-mode -p "Select SSH Host:")
+
+if [ -z "$selected_host" ]; then
+	exit 1
+fi
+
+if [ "$selected_host" = "Enter Custom" ]; then
+
+	printf "Enter user@server: "
+	read custom_host
+	[ -n "$custom_host" ] || exit 1  # Exit if user@server is not specified
+	user_host=$(echo "$custom_host" | awk -F@ '{print $1 "@" $2}')
+
+		printf "Enter port (default 22): "
+		read custom_port
+		[ -n "$custom_port" ] || custom_port=22
+
+	else
+		host_config=$(awk -v host="$selected_host" '/^Host / {in_section=($2 == host)} in_section' "$SSH_CONFIG_FILE")
+
+		user=$(echo "$host_config" | awk '/^User / {print $2}')
+		hostname=$(echo "$host_config" | awk '/^Hostname / {print $2}')
+
+		user_host="$user@$hostname"
+
+		custom_port=$(echo "$host_config" | awk '/^Port / {print $2}')
+		[ -n "$custom_port" ] || custom_port=22
+
+	fi
+
+	if [ -n "$user_host" ]; then
+
+		printf "Enter remote path to mount (default /home/): "
+		read remote_path
+		[ -n "$remote_path" ] || remote_path="/home/"
+
+		password=$(echo "" | bemenu -l 0 --password hide -p "Enter password:")
+		cleaned_remote_path=$(echo "$remote_path" | tr '/' '_')
+		local_path="${XDG_CONFIG_HOME:-$HOME/.config}/lf/mounts/ssh_${user_host}${cleaned_remote_path}"
+
+		mkdir -p $local_path
+		sshpass -p "$password" sshfs -oauto_cache,reconnect,no_readahead -o cache_timeout=115200 -o attr_timeout=115200 -p "$custom_port" -C "$user_host:$remote_path" "$local_path"
+
+		if [ $? -eq 0 ]; then
+			notify-send --icon=/usr/share/icons/Papirus/32x32/apps/furiusisomount.svg "SSHFS Mount" "Successfully mounted $user_host:$remote_path to "$local_path""
+		else
+			notify-send --icon=/usr/share/icons/Papirus/32x32/apps/furiusisomount.svg "SSHFS Mount" "Failed to mount $user_host:$remote_path"
+		fi
+	fi
+}}
+
+
+cmd open ${{
+case $(file --mime-type -b "$f") in
+	application/x-wine-extension-ini) $EDITOR "$fx";;
+	text/*) $EDITOR "$fx";;
+	inode/x-empty) $EDITOR "$fx";;
+	application/json) $EDITOR "$fx";;
+	application/javascript) $EDITOR "$fx";;
+	image/vnd.djvu|application/pdf) devour $READER "$fx";;
+	image/*) devour imv "$fx" .;;
+	video/*) devour mpv --audio-display=no "$fx";;
+	audio/*) devour mpv --player-operation-mode=pseudo-gui "$fx";;
+	application/octet-stream) devour mpv --player-operation-mode=pseudo-gui "$fx";;
+	*) for f in "$fx"; do setsid $OPENER "$f" > /dev/null 2> /dev/null & done;;
+esac
+}}
+
+cmd on-cd &{{
+# '&' commands run silently in background (which is what we want here),
+# but are not connected to stdout.
+# To make sure our escape sequence still reaches stdout we pipe it to /dev/tty
+printf "\033]0;lf $(pwd | sed "s|$HOME|~|")\007" > /dev/tty
+
+}}
+
+cmd open-with-gui &$@ "$fx" ## opens with a gui application outside lf client
+cmd open-with-cli $$@ "$fx" ## opens with a cli application inside lf client
+cmd dragon ${{ echo -n "$fx" | xargs -d '\n' dragon-drop -a -x -T }} ## drag and drop command
+cmd copy-file ${{ echo -n "$fx" | xargs -d '\n' ccopy }} ## copy file to clipboard 
+cmd paste-file ${{ cpaste  }} ## copy file to clipboard 
+cmd terminal &$@ $TERMINAL start --cwd "$(pwd)" -e $SHELL
+cmd copy-pwd ${{ echo -n "$PWD" | xclip -selection clipboard }}
+cmd copy-pwd-file ${{ echo -n "$f" | xclip -selection clipboard }}
+cmd copy-filename $basename -a -- $fx | head -c-1 | xclip -i -selection clipboard
+
+map O push :open-with-gui<space> ## input application
+map o push :open-with-cli<space> ## input application
+map <a-d> dragon
+map <c-n> push :mkdir<space>
+map <c-c> push :copy-filename<enter>
+map <a-y> push :copy-pwd<enter>
+map <a-Y> push :copy-pwd-file<enter>
+map Y push :copy-file<enter>
+
+map gl push :glob-select<space>
+map gu push :glob-unselect<space>
+
+map sf push :upload-file<enter>
+map su push :upload-imgur<enter>
+
+map D delete
+map U push :unmount<enter>
+map am push :mount-archives<enter>
+map ae push :mount-archives-encrypted<enter>
+
+map xx  push :unzip<enter>
+map xs  push :unzip-split<enter>
+map P paste-file 
+map mark-save m
+map mark-load "'"
+map mark-remove '"'
+
+map r
+
+map Z fzf_select
+map az zip
+map as zip-split
+
+map i rename
+map I :rename; cmd-home
+map A :rename; cmd-end
+
+cmap <c-left> cmd-word-back
+cmap <c-right> cmd-word
+cmap <backspace> cmd-delete-word-back # it's c-backspace in my case 0_0
+
+on-cd
+
+

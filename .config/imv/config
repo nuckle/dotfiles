@@ -1,0 +1,8 @@
+[options]
+background=checks
+
+[binds]
+
+<Shift+O> = exec $TERMINAL -e lf-wrapper "$imv_current_file"
+<Ctrl+r> = rotate by 90
+<Shift+R> = exec mogrify -rotate 90 "$imv_current_file"

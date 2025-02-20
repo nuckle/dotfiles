@@ -1,0 +1,21 @@
+#!/bin/sh
+
+
+filename=$(xdg-user-dir PICTURES)/$(date +'%Y-%m-%d_%H-%M-%S.png')
+sleep 3
+
+# Get all possible displays
+allposs=$(xrandr -q | grep "connected")
+
+# Get all connected screens.
+screens=$(echo "$allposs" | awk '/ connected/ {print $1}')
+
+# If there's only one screen
+if [ "$(echo "$screens" | wc -l)" -lt 2 ];  then
+	flameshot screen -n 0 -p $filename -c
+
+	# If there's more than one screen
+	else
+	flameshot screen -n 1 -p $filename -c
+fi
+

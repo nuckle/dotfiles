@@ -1,0 +1,38 @@
+unbind-key ENTER
+unbind-key j
+unbind-key k
+unbind-key J
+unbind-key K
+unbind-key g
+unbind-key G 
+unbind-key q
+
+bind-key j down
+bind-key k up
+bind-key l open
+bind-key h quit
+bind-key h quit tagselection
+bind-key g home
+bind-key G end
+
+run-on-startup select-tag
+bind-key q select-tag feedlist
+bind-key q quit tagselection
+
+color listnormal          color248   default
+color listnormal_unread   color6     default
+color listfocus           color236   color12
+color listfocus_unread    color15    color12
+color info                color248   color236
+color article             color248   default
+
+# highlights
+highlight article "^(Feed|Link):.*$" color6 default bold
+highlight article "^(Title|Date|Author):.*$" color6 default bold
+highlight article "https?://[^ ]+" color10 default underline
+highlight article "\\[[0-9]+\\]" color10 default bold
+highlight article "\\[image\\ [0-9]+\\]" color10 default bold
+highlight feedlist "^─.*$" color6 color236 bold
+
+browser "w3m -sixel %u"
+

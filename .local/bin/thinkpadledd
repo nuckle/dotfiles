@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# LED control paths
+LED_SINK_PATH="/sys/class/leds/0003:17EF:6009.0002:amber:mute/brightness"
+LED_MIC_PATH="/sys/class/leds/0003:17EF:6009.0002:amber:micmute/brightness"
+
+# Function to set the LED state
+set_led_state() {
+    local led_path="$1"
+    local state="$2"
+    echo "$state" > "$led_path"
+}
+
+# Function to update the LED state based on sink mute
+update_sink_led() {
+    local mute_status
+    mute_status=$(pactl get-sink-mute @DEFAULT_SINK@ | awk '{print $2}')
+    if [ "$mute_status" = "yes" ]; then
+        set_led_state "$LED_SINK_PATH" 1
+    else
+        set_led_state "$LED_SINK_PATH" 0
+    fi
+}
+
+# Function to update the LED state based on mic mute
+update_mic_led() {
+    local mic_mute_status
+    mic_mute_status=$(pactl get-source-mute @DEFAULT_SOURCE@ | awk '{print $2}')
+    if [ "$mic_mute_status" = "yes" ]; then
+        set_led_state "$LED_MIC_PATH" 1
+    else
+        set_led_state "$LED_MIC_PATH" 0
+    fi
+}
+
+if [ ! -e "$LED_SINK_PATH" ] || [ ! -e "$LED_MIC_PATH" ]; then
+    exit 0
+fi
+
+# Initial sync
+update_sink_led
+update_mic_led
+
+# Subscribe to PulseAudio events and handle changes
+pactl subscribe 2>/dev/null | grep --line-buffered -e "on card" -e "on sink" -e "on server" -e "source" | {
+    while true; do
+        read -r line
+
+        # Update LED state based on sink or mic mute events
+        if echo "$line" | grep -q "sink"; then
+            # Call update_sink_led to show the state at the start of the event
+            update_sink_led
+        elif echo "$line" | grep -q "source"; then
+            # Call update_mic_led to show the state at the start of the event
+            update_mic_led
+        fi
+
+    done
+}

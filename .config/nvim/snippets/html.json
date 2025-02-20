@@ -1,0 +1,46 @@
+{
+	"php": {
+		"prefix": ["php"],
+		"body": ["<?php \n$0\n?>"],
+		"description": "Default php tag"
+	},
+
+	"favicon": {
+		"prefix": ["favicon"],
+		"body": ["<link rel='icon' href='images/${1:favicon.png}'>"],
+		"description": "Icon for website"
+	},
+
+	"svg": {
+		"prefix": ["svg"],
+		"body": ["<svg>$1</svg>"],
+		"description": "svg image"
+	},
+
+	"use": {
+		"prefix": ["use"],
+		"body": [
+			"<svg class='$1'>\n\t<use xlink:href='images/svg/sprite.svg#$2'></use>\n</svg>"
+		],
+		"description": "svg sprite"
+	},
+
+	"faviconlinks": {
+		"prefix": "faviconlinks",
+		"body": [
+			"<!-- For all browsers -->",
+			"<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon-32x32.png\" />",
+			"<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png\" />",
+			"",
+			"<!-- For Google and Android -->",
+			"<link rel=\"icon\" type=\"image/png\" sizes=\"48x48\" href=\"/favicon-48x48.png\" />",
+			"<link rel=\"icon\" type=\"image/png\" sizes=\"192x192\" href=\"/favicon-192x192.png\" />",
+			"",
+			"<!-- For iPad -->",
+			"<link rel=\"apple-touch-icon\" type=\"image/png\" sizes=\"167x167\" href=\"/favicon-167x167.png\" />",
+			"<!-- For iPhone -->",
+			"<link rel=\"apple-touch-icon\" type=\"image/png\" sizes=\"180x180\" href=\"/favicon-180x180.png\" />"
+		],
+		"description": "Generate Favicon Links"
+	}
+}

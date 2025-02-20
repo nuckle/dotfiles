@@ -1,0 +1,52 @@
+#!/bin/sh
+
+MESSAGE="TTL value (65 is default): "
+
+if [ "$1" = "-t" ]
+then
+	if [ "$2" ]
+	then
+		TTL_VALUE="$2"
+	else
+		read -p "$MESSAGE" TTL_VALUE
+	fi
+	if [ "$TTL_VALUE" =  "" ]
+		then
+        		echo 65 |  sudo tee -a /proc/sys/net/ipv4/ip_default_ttl
+			if [ $? -eq 0 ]; then
+				notify-send "TTL is changed to 65"
+			fi
+		else
+        		echo $TTL_VALUE |  sudo tee -a /proc/sys/net/ipv4/ip_default_ttl
+			if [ $? -eq 0 ]; then
+				notify-send "TTL is changed to $TTL_VALUE"
+			fi
+	fi
+
+else
+	#TTL_VALUE="$(
+	#rofi -dmenu \
+	#-theme dmenu-custom  \
+	#-no-fixed-num-lines \
+	#-disable-history \
+	#-p "$MESSAGE")"
+	#echo $TTL_VALUE
+	TTL_VALUE="$(:| bemenu -l 0 -p "$MESSAGE")"
+
+        if [ "$TTL_VALUE" = "" ]
+		then
+			sudo -A $SHELL -c "echo 65 | tee -a /proc/sys/net/ipv4/ip_default_ttl"
+                        if [ $? -eq 0 ]; then
+                                notify-send "TTL is changed to 65"
+                        fi
+		else
+			sudo -A $SHELL -c "echo $TTL_VALUE | tee -a /proc/sys/net/ipv4/ip_default_ttl"
+                        if [ $? -eq 0 ]; then
+				notify-send "TTL is changed to $TTL_VALUE"
+                        fi
+	fi
+fi
+
+
+
+

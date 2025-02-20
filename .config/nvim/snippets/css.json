@@ -1,0 +1,9 @@
+{
+	"css": {
+		"prefix": ":hvr",
+		"body": [
+			"${TM_SELECTED_TEXT}:hover,\n${TM_SELECTED_TEXT}:active, \n${TM_SELECTED_TEXT}:focus-visible {\n\t${1}\n}"
+		],
+		"description": "Doin' hover effect properly"
+	}
+}

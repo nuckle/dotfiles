@@ -1,0 +1,49 @@
+{
+	"default": {
+		"prefix": ["default"],
+		"body": ["# ${1:Title}\n\n🔑 keys:"],
+		"description": "Simple template for note"
+	},
+	"book": {
+		"prefix": ["book"],
+		"body": [
+			"# ${1:Title}\nAuthor:$2\n\nYears:$3\n\n## Key thoughts 🗝\n\n## Brief retelling 🥤\n\n## Review 🧐\n\n🔑 keys: [[book]]"
+		],
+		"description": "Simple template for book note"
+	},
+	"person": {
+		"prefix": ["person"],
+		"body": [
+			"# ${1:Title}\n\n## Known as 🖼\n\n![photo](photo.jpg)\n\nMedia:\nLocation:\n\n## Known for 🔎\n\n## Bio (optional)**  ⌛️\n\n\n🔑 keys: [[person]]"
+		],
+		"description": "Simple template for person"
+	},
+	"guide": {
+		"prefix": ["guide"],
+		"body": [
+			"# ${1:Title} ⚙️\n\n## Requirements:\n- PC\n- Windows XP\n- ...\n\n## Steps:\n1. First Step\n2. Second Step\n3. ...\n\n\nSources:\n- example.com\n\n🔑 keys: [[guide]]"
+		],
+		"description": "Simple template for guide"
+	},
+	"img": {
+		"prefix": ["img"],
+		"body": ["![$2]($1)"],
+		"description": "Simple template for image"
+	},
+	"imghtml": {
+		"prefix": ["imghtml"],
+		"body": ["<img src='$1'>"],
+		"description": "Simple template for image"
+	},
+
+	"table": {
+		"prefix": ["table"],
+		"body": ["|Col|Col|\n--- | ---\nRow | Row\nRow | Row"],
+		"description": "Simple template for table"
+	},
+	"li": {
+		"prefix": ["li"],
+		"body": ["* [ ] $1"],
+		"description": "List item"
+	}
+}

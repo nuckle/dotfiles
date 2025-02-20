@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Notify the user that the IP is being checked
+notify-send "🛜 Checking up your IP..."
+
+# Fetch the IP address using curl and clean up the output
+ip_address=$(curl -L https://text.ipv4.myip.wtf 2>/dev/null | tr -d '\n')
+
+# Notify the user of the IP address
+notify-send "$ip_address"
+
+# Copy the IP address to the clipboard using xclip
+echo "$ip_address" | xclip -selection clipboard

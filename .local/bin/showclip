@@ -1,0 +1,6 @@
+#!/bin/sh
+
+copyq eval -- "for(i=0; i<size(); ++i) print(i + ': ' + str(read(i)).replace(/\n/g, ' ') + '\n')" | \
+dmenu -fn 'Droid Sans Mono-10' -l 8 | \
+awk -F': ' '{print $1}' | \
+xargs -I {} sh -c 'copyq select {}'
