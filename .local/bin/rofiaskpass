@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Take password prompt from STDIN, print password to STDOUT
+# the sed piece just removes the colon from the provided
+# prompt: rofi -p already gives us a colon
+#rofi -dmenu  \
+#	-password \
+#        -disable-history \
+#	-l 0 \
+#	-p "$(printf "$1" | sed s/://)"
+
+bemenu --prompt "$1" \
+    --password hide \
+    --no-exec \
+    </dev/null
