@@ -1,0 +1,24 @@
+[ -f "$XINITRC" ] && alias startx="switch_xorg && startx $XINITRC"
+#alias startw="exec dbus-run-session sway --unsupported-gpu -D noscanout $@"
+alias startw="exec dbus-run-session sway --unsupported-gpu $@"
+[ -f "$HOME/.local/bin/wrappers/steam" ] && alias steam="$HOME/.local/bin/wrappers/steam"
+alias n='$EDITOR'
+alias ls='ls --color=auto'
+alias wget='wget --hsts-file="$XDG_CACHE_HOME/wget-hsts"'
+alias yt-mp3='yt-dlp -o "%(title)s.%(ext)s" -x --audio-format mp3 --prefer-ffmpeg --embed-thumbnail --embed-metadata'
+alias yt-mp4="yt-dlp -o '%(title)s.%(ext)s' -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4'"
+alias ytm='pipe-viewer -n --resolution=audio --player=mpv_audio'
+alias ytv='pipe-viewer --player=mpv'
+alias sudo="sudo -E" #-s
+alias nix-upgrade="nix-channel --update nixpkgs;nix-env -u '*'"
+alias crop='magick -trim'
+alias towoff2='setopt nullglob; for font in *.ttf *.otf; do fontforge -lang=ff -c "Open(\"$font\"); Generate(\"$font:r.woff2\")" "$font"; done; unsetopt nullglob'
+
+#alias "dv"="devour"
+#alias "mpv"="swayhide mpv"
+#alias "zathura"="swayhide zathura"
+#alias "imv-x11"="swayhide imv-x11"
+#alias "inkview"="swayhide inkview"
+alias lf="lfcd"
+alias neofetch='fastfetch'
+alias w3m='w3m -sixel -config ~/.config/w3m/config'

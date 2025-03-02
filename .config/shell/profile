@@ -1,0 +1,111 @@
+#!/bin/zsh
+
+[ -f "$HOME/.local/state/nix/profiles/profile/etc/profile.d/nix.sh" ] && source "$HOME/.local/state/nix/profiles/profile/etc/profile.d/nix.sh"
+
+export PATH="$PATH:$(find ~/.local/bin -type d | paste -sd ':' -)"
+
+if [ -d "$HOME/.local/share/python" ] ; then
+    PATH="$HOME/.local/share/python/bin:$PATH"
+fi
+PATH=$PATH:~/.local/share/dotnet
+PATH=$PATH:~/.local/share/dotnet/.dotnet/tools/
+PATH=$PATH:~/.local/share/flutter/bin
+
+# XDG directories
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_STATE_HOME="$HOME/.local/state"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_USER_RUNTIME_DIR="$HOME/.local/run"
+
+export USERXSESSION="$XDG_CACHE_HOME/X11/xsession"
+export USERXSESSIONRC="$XDG_CACHE_HOME/X11/xsessionrc"
+export ALTUSERXSESSION="$XDG_CACHE_HOME/X11/Xsession"
+export ERRFILE="$XDG_CACHE_HOME/X11/xsession-error"
+
+export VOLTA_HOME="$XDG_DATA_HOME/volta"
+PATH="$VOLTA_HOME/bin:$PATH"
+
+export DENO_INSTALL="$XDG_DATA_HOME/deno"
+export PATH="$DENO_INSTALL/bin:$PATH"
+
+# my programs
+export EDITOR="nvim"
+export TERMINAL="wezterm"
+export BROWSER="chromium"
+export READER="zathura"
+
+# stupid 'fix' for nvidia and gnome webkit
+export WEBKIT_DISABLE_COMPOSITING_MODE=1
+
+# clean up
+export DOCKER_CONFIG="$XDG_CONFIG_HOME"/docker
+export npm_config_userconfig="$XDG_CONFIG_HOME/npm/config"
+export npm_config_cache="$XDG_CACHE_HOME/npm"
+export NODE_REPL_HISTORY="$XDG_DATA_HOME/node_repl_history"
+export TEXMFHOME="$XDG_DATA_HOME/texmf"
+export CUDA_CACHE_PATH="$XDG_CACHE_HOME"/nv
+export TEXMFVAR="$XDG_CACHE_HOME/texlive/texmf-var"
+export TEXMFCONFIG="$XDG_CONFIG_HOME/texlive/texmf-config"
+export GTK2_RC_FILES="$XDG_CONFIG_HOME/gtk-2.0/gtkrc"
+export _JAVA_OPTIONS="-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME"/java -Djavafx.cachedir="$XDG_CACHE_HOME"/openjfx"
+export ELECTRUMDIR="$XDG_CONFIG_HOME/electrum"
+export ELECTRUMLTC_DIR="$XDG_CONFIG_HOME/electrum-ltc"
+export LESSHISTFILE="-"
+export WGETRC="$XDG_CONFIG_HOME/wget/wgetrc"
+export GNUPGHOME="$XDG_CONFIG_HOME/gnupg"
+export XAUTHORITY="$XDG_CONFIG_HOME/xorg/.Xauthority"
+export XINITRC="$XDG_CONFIG_HOME/xorg/xinitrc"
+export W3M_DIR="$XDG_DATA_HOME/w3m"
+export CONFIG_DIR=".config"
+export PYTHONSTARTUP="$XDG_CONFIG_HOME/python/pythonrc"
+export GRADLE_USER_HOME="$XDG_DATA_HOME"/gradle
+export VSCODE_PORTABLE="$XDG_DATA_HOME"/vscode
+export WINEPREFIX="$XDG_DATA_HOME"/wineprefixes/default
+export CARGO_HOME="$XDG_DATA_HOME"/cargo
+export DOTNET_ROOT="$XDG_DATA_HOME"/dotnet/
+export DOTNET_CLI_HOME="$XDG_DATA_HOME"/dotnet/
+export OMNISHARPHOME="$XDG_CONFIG_HOME"/omnisharp
+export NUGET_PACKAGES="$XDG_DATA_HOME"/dotnet-pkgs
+export LEIN_HOME="$XDG_DATA_HOME"/lein
+export ECLIPSE_HOME="$XDG_CONFIG_HOME"/eclipse
+export GOPATH="$XDG_DATA_HOME"/go
+export GOMODCACHE="$XDG_CACHE_HOME"/go/mod
+
+export ANDROID_SDK_HOME="$XDG_DATA_HOME/android"
+export ANDROID_HOME="$XDG_DATA_HOME/android" 
+
+export PATH=$PATH:"$ANDROID_SDK_HOME"/cmdline-tools/latest/bin:"$ANDROID_SDK_HOME"/cmdline-tools/tools/bin
+export PATH="$ANDROID_SDK_HOME"/emulator:$PATH
+export PATH="$ANDROID_SDK_HOME"/platform-tools:$PATH
+
+export __GL_SYNC_TO_VBLANK=0
+
+export LOCALE_ARCHIVE=/usr/lib/locale/locale-archive
+export QT_QPA_PLATFORMTHEME="qt5ct"
+export SUDO_ASKPASS="$HOME/.local/bin/rofiaskpass"
+export INPUTRC="$XDG_CONFIG_HOME/shell/inputrc"
+export PRETTIERD_DEFAULT_CONFIG="$XDG_CONFIG_HOME/prettier/.prettierrc"
+export _JAVA_AWT_WM_NONREPARENTING=1
+export LS_COLORS=':ow=01;33'
+export LIBVA_DRIVER_NAME=i965
+export BEMENU_RENDERERS=/usr/lib/bemenu/
+export BEMENU_OPTS='-H 24 --vim-esc-exits -l 5 --nb "#313244" --ab "#313244" --hb "#524f67" --hf "#F1FA8C" --tb "#313244" --tf "#F1FA8C" --fb "#313244"'
+
+export NIX_PATH=${NIX_PATH:+$NIX_PATH:}$HOME/.local/state/nix/defexpr/channels
+export NIXPKGS_ALLOW_UNFREE=1
+
+# my chromium flags
+if [ -f $XDG_CONFIG_HOME/chromium-flags.conf ]; then
+   export CHROME_FLAGS="$(cat $XDG_CONFIG_HOME/chromium-flags.conf)"
+   export GOOGLE_API_KEY="no" 
+   export GOOGLE_DEFAULT_CLIENT_ID="no" 
+   export GOOGLE_DEFAULT_CLIENT_SECRET="no" 
+fi
+
+if [ "$(pidof sway)" ]; then
+  export CHROME_FLAGS=$(echo "--ozone-platform=wayland \ \n$CHROME_FLAGS")
+  export MOZ_ENABLE_WAYLAND=1
+  export XDG_CURRENT_DESKTOP="sway"
+fi
+
